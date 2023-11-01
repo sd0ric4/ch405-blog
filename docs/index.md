@@ -8,11 +8,11 @@ hero:
   tagline: 随便写点什么先捏喵
   actions:
     - theme: brand
-      text: 例子
-      link: /markdown-examples
+      text: 知识库
+      link: /ctf/ctf开始.md
     - theme: alt
-      text: API 例子
-      link: /api-examples
+      text: 杂项
+      link: /dustbin/index.md
 
 features:
   - title: 吃饭

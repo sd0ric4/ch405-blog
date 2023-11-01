@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
-
+import  {ctf} from "./router/ctf.mjs";
+import { dustbin } from './router/dustbin.mjs';
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Chaos Ruin",
@@ -8,18 +9,14 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: '主页', link: '/' },
-      { text: '样例', link: '/markdown-examples' },
+      { text: '知识', link: '/ctf/ctf开始.md' },
+      { text: '杂项', link: '/dustbin/index.md' },
     ],//主导航
 
-    sidebar: [
-      {
-        text: '样例',
-        items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
-          { text: 'Runtime API Examples', link: '/api-examples' }
-        ]
-      }
-    ],//侧边栏
+    sidebar: {
+      '/ctf/': ctf,
+      '/dustbin/': dustbin,
+    },
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/sd0ric4' }
