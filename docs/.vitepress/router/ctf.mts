@@ -2,7 +2,6 @@ export const ctf = [
     {
         text: 'ctf',
         items: [
-            {text:'出题misc中等',link:'/ctf/出题misc中等.md'},
             {text:'单向加密',link:'/ctf/单向加密.md'},
             {text:'双向加密',link:'/ctf/双向加密.md'},
             {text:'反弹Shell',link:'/ctf/反弹Shell.md'},
