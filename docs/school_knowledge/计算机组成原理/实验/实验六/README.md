@@ -32,7 +32,6 @@ sudo pacman -S subversion
 
 用 `vscode` 编辑一个 `test.asm` 文件
 
-![test.asm](./assets/test.asm.svg)
 
 ```asm
 main:	li $v0 , 5
