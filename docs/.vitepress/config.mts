@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
 import  {ctf} from "./router/ctf.mjs";
 import { dustbin } from './router/dustbin.mjs';
+import { school_knowledge } from './router/school_knowledge.mjs';
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Chaos Ruin",
@@ -10,12 +11,13 @@ export default defineConfig({
     nav: [
       { text: '主页', link: '/' },
       { text: '知识', link: '/ctf/ctf开始.md' },
-      { text: '杂项', link: '/dustbin/index.md' },
+      { text: '学校东西', link: '/school_knowledge/计算机组成原理.md' },
     ],//主导航
 
     sidebar: {
       '/ctf/': ctf,
       '/dustbin/': dustbin,
+      '/school_knowledge/': school_knowledge,
     },
     search: {
       provider: 'algolia',
