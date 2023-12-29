@@ -15,11 +15,11 @@ hero:
       link: /dustbin/index.md
 
 features:
-  - title: 吃饭
-    details: 我吃吃吃吃吃吃
-  - title: 睡觉
-    details: 我睡睡睡睡睡睡
-  - title: 工作
-    details: 要似掉了喵
+  - title: 吃饭🍚
+    details: 我吃吃吃吃吃吃🤑
+  - title: 睡觉😴
+    details: 我睡睡睡睡睡睡🌔
+  - title: 工作👨‍💻
+    details: 要似掉了喵💀
 ---
 
