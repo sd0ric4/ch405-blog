@@ -1,3 +1,5 @@
+// school_knowledge.mts
+import { computer_organization } from "./school_knowledge/computer_organization/computer_organization.mts"
 export const school_knowledge = [
     {
         text: 'school_knowledge',
@@ -8,17 +10,7 @@ export const school_knowledge = [
             {
                 text:'计算机组成原理',
                 link:'/school_knowledge/计算机组成原理.md',
-                items: [
-                    {
-                        text:'实验',
-                        items: [
-                            {
-                                text: '实验七',
-                                link: '/school_knowledge/计算机组成原理/实验/实验七/README.md'
-                            }
-                        ]
-                    }
-                ]
+                items: computer_organization
             },
             //{text:'Python',link:'/school_knowledge/Python.md'},
             //{text:'Linux',link:'/school_knowledge/Linux.md'},
