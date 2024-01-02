@@ -22,7 +22,7 @@ export const computer_organization = [
             },
             {
                 text: '计算机硬件设计计算机硬件设计、FPGA与HDL',
-                link: '/school_knowledge/计算机组成原理/实验原理/计算机硬件设计计算机硬件设计FPGA与HDL/计算机硬件设计计算机硬件设计、FPGA与HDL.md'
+                link: '/school_knowledge/计算机组成原理/实验原理/计算机硬件设计计算机硬件设计和FPGA与HDL/计算机硬件设计计算机硬件设计、FPGA与HDL.md'
             }
         ]
     }
