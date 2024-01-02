@@ -18,7 +18,7 @@ export const computer_organization = [
         items: [
             {
                 text: 'MIPS指令及汇编完全解析',
-                link: '/school_knowledge/计算机组成原理/实验原理/MIPS指令及汇编完全解析.md'
+                link: '/school_knowledge/计算机组成原理/实验原理/MIPS指令及汇编完全解析/MIPS指令及汇编完全解析.md'
             },
         ]
     }
