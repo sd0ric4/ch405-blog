@@ -1,11 +1,16 @@
 // school_knowledge.mts
 import { computer_organization } from "./school_knowledge/computer_organization/computer_organization.mts"
+import { cpp_docs } from "./school_knowledge/c_plus_plus/cpp.mts"
 export const school_knowledge = [
     {
         text: 'school_knowledge',
         items: [
             //{text:'C语言',link:'/school_knowledge/C语言.md'},
-            //{text:'C++',link:'/school_knowledge/C++.md'},
+            {
+                text:'C++',
+                link:'/school_knowledge/C++.md',
+                items: cpp_docs
+            },
             //{text:'Java',link:'/school_knowledge/Java.md',},
             {
                 text:'计算机组成原理',

@@ -1,5 +1,9 @@
 # 计算机组成原理 第七次实验
 
+## 目录
+
+[[toc]]
+
 ## 1. 实验目的
 
 - 学习指令存储器的设计；
@@ -98,7 +102,7 @@
 
 ## 5、思考与探索：
 
-| PC地址     | 读出数字代码 | 关联文件中指令代码 |
+| PC 地址    | 读出数字代码 | 关联文件中指令代码 |
 | ---------- | ------------ | ------------------ |
 | 0000 0000h | 00000827     | 00000827           |
 | 0000 0004h | 0001102b     | 0001102b           |
@@ -117,13 +121,10 @@
 | 0000 0038h | 012c7025     | 012c7025           |
 | 0000 003Ch | 无           | 00c77825           |
 
-
-
 1. 读取指令存储器的前 16 条指令代码记录到表 6.15 中，分析取出的指令代码是否和指令存储器关联文件中的指令码一致？如果不一致，请分析原因。
    1. 答： 不一致，时间线不够
 2. 说说你在实验中碰到了哪些问题，你是如何解决的？
    1. 遇到了问题是会综合会报错，但是其实不用管也能正常运行
-
 
 ## 6、解决方法
 
@@ -417,16 +418,16 @@ module test;
 
 	// Instantiate the Unit Under Test (UUT)
 	Fetch_Inst_Code uut (
-		.clk(clk), 
-		.rst(rst), 
-		.LED(LED), 
-		.MUX(MUX), 
-		.op_code(op_code), 
-		.funct(funct), 
-		.rs_addr(rs_addr), 
-		.rt_addr(rt_addr), 
-		.rd_addr(rd_addr), 
-		.shamt(shamt), 
+		.clk(clk),
+		.rst(rst),
+		.LED(LED),
+		.MUX(MUX),
+		.op_code(op_code),
+		.funct(funct),
+		.rs_addr(rs_addr),
+		.rt_addr(rt_addr),
+		.rd_addr(rd_addr),
+		.shamt(shamt),
 		.Inst_code(Inst_code)
 	);
 	always #33 clk = ~clk;
@@ -442,6 +443,6 @@ module test;
 		// Add stimulus here
 
 	end
-      
+
 endmodule
 ```

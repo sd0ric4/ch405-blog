@@ -1,5 +1,9 @@
 # 实验六
 
+## 目录
+
+[[toc]]
+
 ## 安装所需软件
 
 最新版 `PCSpim`（现在叫 qtspim 了）可以直接通过 `AUR` 下载，`Arch` 万岁
@@ -31,7 +35,6 @@ sudo pacman -S subversion
 ## 编辑 asm 文件
 
 用 `vscode` 编辑一个 `test.asm` 文件
-
 
 ```asm
 main:	li $v0 , 5
