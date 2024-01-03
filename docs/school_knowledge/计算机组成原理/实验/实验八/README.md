@@ -688,3 +688,33 @@ module Control(OP, func, CF,
 endmodule
 ```
 
+## 测试模块
+
+用于测试八条指令的功能是否正确。
+
+```verilog
+//simu.v
+`timescale 1ns / 1ps
+// R型指令CPU测试
+module CPU_R_simu();
+    reg clk, rst;
+    wire [31:0] Inst_code, PC, PC_new, RF_A, RF_B, ALU_F;
+    wire [5:0] OP, func;
+    wire [4:0] rs, rt, rd;
+    wire [3:0] ALU_OP;
+    wire Write_Reg,ZF, CF, OF, SF, PF;
+
+    R_CPU CPU_Instance1(clk, rst, // 输入控制信号
+        PC, PC_new, Inst_code, OP, func, rs, rt, rd, // 取指令和指令分段模块输出
+        Write_Reg, ALU_OP, // 指令译码及控制模块输出
+        RF_A, RF_B, // 寄存器堆输出
+        ALU_F, ZF, CF, OF, SF, PF // ALU 输出
+        ); // 寄存器堆B端口数据输出
+
+    always #50 clk = ~clk;
+    initial begin
+        clk = 0; rst = 1; #20; rst = 0;
+
+    end
+endmodule
+```
