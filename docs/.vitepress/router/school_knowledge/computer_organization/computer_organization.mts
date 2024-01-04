@@ -20,6 +20,10 @@ export const computer_organization = [
                 link: '/school_knowledge/计算机组成原理/实验/实验八/README.md'
             },
             {
+                text: '实验九',
+                link: '/school_knowledge/计算机组成原理/实验/实验九/README.md'
+            },
+            {
                 text: '实验十',
                 link: '/school_knowledge/计算机组成原理/实验/实验十/README.md'
             }
