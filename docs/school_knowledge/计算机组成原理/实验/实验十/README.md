@@ -147,3 +147,88 @@ Loop1:	lw	$t3,	0($t0);	#$t3=取出数据
 00002020, 20050014, 2006000a, 0c000004, 00804020, 00a04820, 00c05020, 8d0b0000, ad2b0000, 214affff , 1540fffc, 03e00008
 ```
 
+## 3、实验要求
+
+1. 实验九的基础上，编写一个CPU模块，除了能够实现实验九的8条R型指令、6条I型指令外，还要求能够实现新的5条J型指令
+   1. 将实验九的工程拷贝至新目录下,成为一个新工程；修改ROM_B和RAM_B的初始化关联文件为新工程下的*.coe文件。
+   2. 定义一些控制和数据信号,添加PC的四选一数据通道和移位部件、地址加法器部件,重新对各模块进行逻辑连接。
+   3. 修改和扩充CPU模块中指令译码、指令执行控制部分的代码，完善CPU模块
+
+### 实验代码：
+
+#### 顶层模块
+
+```verilog
+module CPU(
+    input clk, rst, OF, ZF, F, ALU_OP, M_R_Data, w_r_s, imm_s, rt_imm_s, Mem_Write, Write_Reg, PC, PC_s, clk_M, R_Data_B, Inst_code
+);
+    output [31:0] Inst_code;  // 指令代码输出
+
+    wire [5:0] op_code, funct;  // 操作码和功能码
+    wire [4:0] rs_addr, rt_addr, rd_addr, shamt;  // 寄存器地址和移位量
+    output [31:0] F;  // ALU 结果输出
+    output OF, ZF;  // 溢出标志和零标志
+    output [31:0] M_R_Data;  // 存储器读取数据
+    output [2:0] ALU_OP;  // ALU 操作码
+    wire [31:0] Mem_Addr;  // 存储器地址
+    wire [4:0] W_Addr;  // 写入地址
+    output imm_s, rt_imm_s, Mem_Write, Write_Reg;  // 立即数标志、寄存器写入标志和写寄存器地址
+    output [1:0] w_r_s;  // 寄存器写入选择
+    wire [31:0] imm_data;  // 立即数数据
+    wire [31:0] R_Data_A;  // 寄存器数据 A
+    output [31:0] R_Data_B;  // 寄存器数据 B
+    wire [15:0] imm;  // 立即数
+    wire [31:0] ALU_B;  // ALU 操作数 B
+    wire [31:0] W_Data;  // 写入数据
+    output [1:0] PC_s;  // 程序计数器状态
+    wire [25:0] address;  // 地址
+    wire [1:0] wr_data_s;  // 写入数据选择
+    wire [31:0] PC_new;  // 新程序计数器值
+    output [31:0] PC;  // 程序计数器
+
+    // 调用程序计数器模块，用于管理程序计数器的状态
+    PC pc1(clk, rst, Inst_code, PC_s, R_Data_A, address, PC, imm_data, PC_new);
+
+    // 提取操作码、寄存器地址和功能码
+    assign op_code = Inst_code[31:26];
+    assign rs_addr = Inst_code[25:21];
+    assign rt_addr = Inst_code[20:16];
+    assign rd_addr = Inst_code[15:11];
+    assign shamt = Inst_code[10:6];
+    assign funct = Inst_code[5:0];
+    assign imm = Inst_code[15:0];
+    assign address = Inst_code[25:0];
+
+    // 调用操作功能模块，用于执行指令的操作
+    OP_Func op(op_code, funct, Write_Reg, ALU_OP, w_r_s, imm_s, rt_imm_s, Mem_Write, wr_data_s, PC_s, ZF);
+
+    // 决定写入地址，根据写寄存器选择不同的写入地址
+    assign W_Addr = (w_r_s[1]) ? 5'b11111 : ((w_r_s[0]) ? rt_addr : rd_addr);
+
+    // 根据立即数标志选择立即数或寄存器数据作为写入数据
+    assign imm_data = (imm_s) ? {{16{imm[15]}}, imm} : {{16{1'b0}}, imm};
+
+    // 调用第四个实验模块，用于写入数据到寄存器
+    MyRegFile F1(rs_addr, rt_addr, Write_Reg, R_Data_A, R_Data_B, rst, ~clk, W_Addr, W_Data);
+
+    // 根据立即数或寄存器数据选择 ALU 操作数 B
+    assign ALU_B = (rt_imm_s) ? imm_data : R_Data_B;
+
+    // 调用第三个实验模块，用于执行 ALU 操作
+    MyALU T1(OF, ZF, ALU_OP, R_Data_A, ALU_B, F);
+
+    // 调用 RAM 模块，用于存储器读写
+    RAM RAM_B (
+        .clka(clk_M),  // 输入 clka
+        .wea(Mem_Write),  // 输入 wea
+        .addra(F[5:0]),  // 输入 addra
+        .dina(R_Data_B),  // 输入 dina
+        .douta(M_R_Data)  // 输出 douta
+    );
+
+    // 根据写入数据选择决定写入数据来源
+    assign W_Data = (wr_data_s[1]) ? PC_new : ((wr_data_s[0]) ? M_R_Data : F);
+endmodule
+
+```
+

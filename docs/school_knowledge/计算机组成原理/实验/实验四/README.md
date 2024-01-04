@@ -88,7 +88,7 @@ module TopLevelModule(Opt, Addr, Write_Reg, Clk, Reset, A_B, LED);
     reg [31:0] W_Data;
 
     // 您的寄存器堆模块实例
-    RegFile reg_file (
+    Regfile reg_file (
         .Clk(Clk),// 把顶层模块的时钟信号传递给寄存器堆模块
         .Clr(Reset),// 把顶层模块的复位信号传递给寄存器堆模块
         .Write_Reg(Write_Reg),// 把顶层模块的写使能信号传递给寄存器堆模块
@@ -145,32 +145,38 @@ endmodule
 
 ```verilog
 `timescale 1ns / 1ps
-// 寄存器堆模块
-module RegFile(Clk, Clr, Write_Reg,
-    R_Addr_A, R_Addr_B, W_Addr,
-    W_Data, R_Data_A, R_Data_B);
-    parameter ADDR = 5; // 地址位宽
-    parameter SIZE = 32; // 数据位宽
-    parameter NUMB = 1<<ADDR; // 寄存器个数
+module Regfile(
+    R_Addr_A, R_Addr_B, Write_Reg, R_Data_A, R_Data_B, Reset, Clk, W_Addr, W_Data
+);
+    input [4:0] R_Addr_A, R_Addr_B, W_Addr; // 读取和写入寄存器的地址
+    input Write_Reg, Reset, Clk; // 写入使能信号，复位信号，时钟信号
+    input [31:0] W_Data; // 写入数据
+    output [31:0] R_Data_A, R_Data_B; // 读取数据
+    reg [31:0] REG_Files[0:31]; // 32个32位寄存器构成的寄存器堆
+    integer i; // 用于初始化寄存器堆
 
-    input Clk, Clr, Write_Reg; // 时钟及清零信号, 写控制信号
-    input [ADDR:1] R_Addr_A, R_Addr_B; // AB两端口读寄存器地址
-    input [ADDR:1] W_Addr; // 写寄存器地址
-    input [SIZE:1] W_Data; // 写入数据
-    output [SIZE:1] R_Data_A, R_Data_B; // AB两端口读出数据
+    // 初始化所有寄存器为0
+    initial
+        for (i = 0; i < 32; i = i + 1) REG_Files[i] <= 0;
 
-    reg [SIZE:1] REG_Files[0:NUMB-1]; // NUMB个SIZE位寄存器构成寄存器堆
-    integer i; // 用于遍历NUMB个寄存器
+    // 在时钟上升沿或复位时操作
+    always @ (posedge Clk or posedge Reset) begin
+        if (Reset) begin
+            // 在复位信号激活时，清除所有寄存器的内容
+            for (i = 0; i <= 31; i = i + 1)
+                REG_Files[i] <= 0;
+        end else begin
+            // 如果写入使能信号激活，将数据写入指定的寄存器
+            if (Write_Reg)
+                REG_Files[W_Addr] <= W_Data;
+        end
+    end
 
-    always @(posedge Clk) begin
-        if (Clr) for(i=0;i<NUMB;i=i+1) REG_Files[i] <= 0; // 同步清零
-        else if(Write_Reg && W_Addr) REG_Files[W_Addr] <= W_Data;
-    end // 时钟上跳且写控制高电平时写入, REG_Files[0]即 R0 只读
-
-    // 读操作没有使能或控制信号, 是组合逻辑电路, 使用数据流描述方式建模.
+    // 读取指定寄存器的内容
     assign R_Data_A = REG_Files[R_Addr_A];
     assign R_Data_B = REG_Files[R_Addr_B];
 endmodule
+
 ```
 
 本模块实现了寄存器堆的功能。
