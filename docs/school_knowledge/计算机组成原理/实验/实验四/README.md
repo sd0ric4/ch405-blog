@@ -189,7 +189,7 @@ endmodule
 
 这个模块实现了一个基本的寄存器堆功能，支持同步清零、同步写入和组合逻辑读取。
 
-####  测试模块
+#### 测试模块
 
 ```verilog
 module Fourth_experiment_test;
@@ -242,8 +242,6 @@ module Fourth_experiment_test;
 endmodule
 
 ```
-
-
 
 ## 4、实验步骤
 
