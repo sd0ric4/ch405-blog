@@ -68,3 +68,42 @@
 
 ### 信号配置表
 
+![image-20240104084203207](assets/image-20240104084203207.png)
+
+### 代码实现
+
+```verilog
+`timescale 1ns / 1ps
+// 寄存器堆模块
+module RegFile(Clk, Clr, Write_Reg,
+    R_Addr_A, R_Addr_B, W_Addr,
+    W_Data, R_Data_A, R_Data_B);
+    parameter ADDR = 5; // 地址位宽
+    parameter SIZE = 32; // 数据位宽
+    parameter NUMB = 1<<ADDR; // 寄存器个数
+
+    input Clk, Clr, Write_Reg; // 时钟及清零信号, 写控制信号
+    input [ADDR:1] R_Addr_A, R_Addr_B; // AB两端口读寄存器地址
+    input [ADDR:1] W_Addr; // 写寄存器地址
+    input [SIZE:1] W_Data; // 写入数据
+    output [SIZE:1] R_Data_A, R_Data_B; // AB两端口读出数据
+
+    reg [SIZE:1] REG_Files[0:NUMB-1]; // NUMB个SIZE位寄存器构成寄存器堆
+    integer i; // 用于遍历NUMB个寄存器
+
+    always @(posedge Clk) begin
+        if (Clr) for(i=0;i<NUMB;i=i+1) REG_Files[i] <= 0; // 同步清零
+        else if(Write_Reg && W_Addr) REG_Files[W_Addr] <= W_Data;
+    end // 时钟上跳且写控制高电平时写入, REG_Files[0]即 R0 只读
+
+    // 读操作没有使能或控制信号, 是组合逻辑电路, 使用数据流描述方式建模.
+    assign R_Data_A = REG_Files[R_Addr_A];
+    assign R_Data_B = REG_Files[R_Addr_B];
+endmodule
+```
+
+
+
+本模块实现了寄存器堆的功能。
+
+功能实现方式：使用数组实现寄存器堆，使用时钟上升沿触发写入，使用组合逻辑实现读取。
