@@ -415,15 +415,20 @@ module OP_Func(op_code, funct, Write_Reg, ALU_OP, rd_rt_s, imm_s, rt_imm_s, Mem_
         // R-type指令处理
         if (op_code == 0)
         begin 
+            //这段代码是在实现MIPS指令集中的R类型指令的解码过程。
+            //在MIPS指令集中，R类型指令的操作码（op_code）是0，而具体的操作类型（如ADD、SUB等）是由功能码（funct）来确定的。
+            //当操作码（op_code）为0时，代码进入case语句，根据功能码（funct）的值来设置ALU的操作类型（ALU_OP）。
+            //例如，当功能码（funct）为6'b100000时，设置ALU的操作类型（ALU_OP）为3'b100，对应的是ADD操作。
+            //这样写的目的是为了实现MIPS指令集中的R类型指令的解码，根据不同的功能码（funct）来设置不同的ALU操作类型（ALU_OP）。
             case (funct)
-                6'b100000: ALU_OP = 3'b100; // ADD
+                6'b100000: ALU_OP = 3'b100; // ADD  
                 6'b100010: ALU_OP = 3'b101; // SUB
                 6'b100100: ALU_OP = 3'b000; // AND
                 6'b100101: ALU_OP = 3'b001; // OR
                 6'b100110: ALU_OP = 3'b010; // XOR
                 6'b100111: ALU_OP = 3'b011; // NOR
-                6'b101011: ALU_OP = 3'b110; // SLTU
-                6'b000100: ALU_OP = 3'b111; // SLLV
+                6'b101011: ALU_OP = 3'b110; // SLTU 
+                6'b000100: ALU_OP = 3'b111; // SLLV 
             endcase 
         end
         else // I-type 和 J-type 指令处理
