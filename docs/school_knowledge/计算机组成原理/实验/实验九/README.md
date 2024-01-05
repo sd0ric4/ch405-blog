@@ -1,5 +1,5 @@
 # 实验九
-
+尝试按照学习通的视频一步一步修改，但是视频中的代码在我这边有问题，所以还是按照实验八的代码进行修改，最后成功了。
 ## 1、实验目的 
 - 掌握MIPS R型和I型指令的综合数据通路设计
 - 掌握数据流的多路选通控制方法
@@ -227,119 +227,54 @@ sltu	$24,	$22,	$23 #$24=?  ，譬如=0000_0001
 
 ```verilog
 `timescale 1ns / 1ps
-module CPU(clk,rst,OF,ZF,F,ALU_OP,M_R_Data,rd_rt_s,imm_s,rt_imm_s,Mem_Write,alu_mem_s,Write_Reg,clk_M,R_Data_B,Inst_code);
-// 定义CPU模块，包含输入输出端口
-
-input clk,rst,clk_M;
-// 输入信号：时钟，复位，存储器时钟
-
+module CPU(clk,rst,OF,ZF,F,ALU_OP,M_R_Data,rd_rt_s,imm_s,rt_imm_s,Mem_Write,alu_mem_s,Write_Reg,clk_RAM,R_Data_B,Inst_code);
+input clk,rst,clk_RAM;
 wire [31:0]Inst_code;
-// 32位指令代码
-
 wire [5:0]op_code,funct;
-// 操作码和功能码
-
 wire [4:0]rs_addr,rt_addr,rd_addr,shamt;
-// 源寄存器地址，目标寄存器地址，目的寄存器地址，移位量
-
 output [31:0]F;
-// ALU的输出
-
 output OF,ZF;
-// 溢出标志，零标志
-
 output [31:0]M_R_Data;
-// 存储器读取的数据
-
 output [2:0]ALU_OP;
-// ALU操作码
-
 wire [31:0]Mem_Addr;
-// 存储器地址
-
 wire [4:0]W_Addr;
-// 写入地址
-
 output rd_rt_s,imm_s,rt_imm_s,Mem_Write,alu_mem_s,Write_Reg;
-// 控制信号
-
 output [31:0]Inst_code;
-// 指令代码
-
 wire [31:0]imm_data;
-// 立即数数据
-
 wire [31:0]R_Data_A;
-// 寄存器A的数据
-
 output [31:0] R_Data_B;
-// 寄存器B的数据
-
 wire [15:0]imm;
-// 16位立即数
-
 wire [31:0]ALU_B;
-// ALU的输入B
-
 wire [31:0]W_Data;
-// 写入数据
-
+// PC 取指令 模块
 PC pc1(clk,rst,Inst_code);
-// 程序计数器模块
-
+// OP_Func 指令分段译码 模块
 assign op_code = Inst_code[31:26];
-// 操作码赋值
-
 assign rs_addr = Inst_code[25:21];
-// 源寄存器地址赋值
-
 assign rt_addr = Inst_code[20:16];
-// 目标寄存器地址赋值
-
 assign rd_addr = Inst_code[15:11];
-// 目的寄存器地址赋值
-
 assign shamt = Inst_code[10:6];
-// 移位量赋值
-
 assign funct = Inst_code[5:0];
-// 功能码赋值
-
 assign imm = Inst_code[15:0];
-// 立即数赋值
-
 OP_Func op(op_code,funct,Write_Reg,ALU_OP,rd_rt_s,imm_s,rt_imm_s,Mem_Write,alu_mem_s);
-// 操作函数模块
-
+// RegFile 寄存器堆 模块
 assign W_Addr = (rd_rt_s)?rt_addr:rd_addr;
-// 写入地址选择
-
-assign imm_data = (imm_s)?{{16{imm[15]}},imm}:{{16{1'b0}},imm};
-// 立即数数据选择
-
+assign imm_data = (imm_s)?{{16{imm[15]}},imm}:{{16{1'b0}},imm};//这边ppt上有写
 assign W_Data = alu_mem_s?M_R_Data:F;
-// 写入数据选择
-
-Regfile F1(rs_addr,rt_addr,Write_Reg,R_Data_A,R_Data_B,rst,~clk,W_Addr,W_Data);
-// 寄存器文件模块
-
+RegFile F1(rs_addr,rt_addr,Write_Reg,R_Data_A,R_Data_B,rst,~clk,W_Addr,W_Data);
+// ALU 模块
 assign ALU_B = (rt_imm_s)?imm_data:R_Data_B;	
-// ALU的输入B选择
-
 MyALU T1(OF,ZF,ALU_OP,R_Data_A,ALU_B,F); 
-// 第三次实验的第一部分模块
-
+// RAM 模块
 RAM RAM_B (
-  .clka(clk_M), // 输入时钟
-  .wea(Mem_Write), // 写使能
-  .addra(F[5:0]), // 地址
-  .dina(R_Data_B), // 写入数据
-  .douta(M_R_Data) // 读出数据
+  .clka(clk_RAM), // input clka
+  .wea(Mem_Write), // input [0 : 0] wea
+  .addra(F[5:0]), // input [5 : 0] addra
+  .dina(R_Data_B), // input [31 : 0] dina
+  .douta(M_R_Data) // output [31 : 0] douta
 );
-// RAM模块
-
 endmodule
-// 结束模块定义
+
 ```
 
 
@@ -357,97 +292,33 @@ endmodule
 - 在指令周期（即时钟周期）clk上跳沿，执行取指令操作，在clk下跳沿更新PC值。
 - 复位信号rst：=1时，PC清零，即指定MIPS CPU从0号主存开始执行程序。
 
-```verilog
-module PC(clk, rst, Inst_code);
-    input clk, rst; // 输入信号：时钟（clk），复位（rst）
-    reg [31:0] PC; // 程序计数器寄存器
-    initial
-        PC = 32'h0000_0000; // 初始化PC值为0
-
-    output [31:0] Inst_code; // 输出信号：指令代码
-    wire [31:0] PC_new; // 内部线网：新的PC值
-    assign PC_new = PC + 4; // 计算新PC值（当前PC值加4）
-
-    // 指令存储器ROM
-    Inst_Rom rom(
-        .clka(clk), // 输入：时钟
-        .addra(PC[7:2]), // 输入：地址（取PC的部分位）
-        .douta(Inst_code) // 输出：指令代码
-    );
-
-    // 时钟的下降沿或复位信号的上升沿触发
-    always @(negedge clk or posedge rst)
-    begin
-        if (rst)
-            PC <= 32'h0000_0000; // 复位时，将PC设置为0
-        else
-            PC <= PC_new; // 非复位时，更新PC为新值
-    end
-endmodule
-
-```
+这边和实验七以及实验八实际上是有变化的
 
 ```verilog
 `timescale 1ns / 1ps
-module OP_Func(op_code, funct, Write_Reg, ALU_OP, rd_rt_s, imm_s, rt_imm_s, Mem_Write, alu_mem_s);
-    input [5:0] op_code; // 输入信号：操作码
-    input [5:0] funct; // 输入信号：函数码
-    output reg [2:0] ALU_OP; // 输出信号：ALU操作码
-    output reg Write_Reg; // 输出信号：是否写回寄存器
-    output reg rd_rt_s; // 输出信号：目标寄存器选择
-    output reg imm_s; // 输出信号：立即数符号扩展
-    output reg rt_imm_s; // 输出信号：ALU第二操作数选择
-    output reg Mem_Write; // 输出信号：内存写使能
-    output reg alu_mem_s; // 输出信号：写回数据选择
-
-    // 逻辑块：根据操作码和函数码设置控制信号
-    always @(*)
-    begin   
-        // 默认值设置
-        Write_Reg = 1;
-        ALU_OP = 0;
-        rd_rt_s = 0;
-        imm_s = 0;
-        rt_imm_s = 0;
-        Mem_Write = 0;
-        alu_mem_s = 0;
-
-        // R-type指令处理
-        if (op_code == 0)
-        begin 
-            //这段代码是在实现MIPS指令集中的R类型指令的解码过程。
-            //在MIPS指令集中，R类型指令的操作码（op_code）是0，而具体的操作类型（如ADD、SUB等）是由功能码（funct）来确定的。
-            //当操作码（op_code）为0时，代码进入case语句，根据功能码（funct）的值来设置ALU的操作类型（ALU_OP）。
-            //例如，当功能码（funct）为6'b100000时，设置ALU的操作类型（ALU_OP）为3'b100，对应的是ADD操作。
-            //这样写的目的是为了实现MIPS指令集中的R类型指令的解码，根据不同的功能码（funct）来设置不同的ALU操作类型（ALU_OP）。
-            case (funct)
-                6'b100000: ALU_OP = 3'b100; // ADD  
-                6'b100010: ALU_OP = 3'b101; // SUB
-                6'b100100: ALU_OP = 3'b000; // AND
-                6'b100101: ALU_OP = 3'b001; // OR
-                6'b100110: ALU_OP = 3'b010; // XOR
-                6'b100111: ALU_OP = 3'b011; // NOR
-                6'b101011: ALU_OP = 3'b110; // SLTU 
-                6'b000100: ALU_OP = 3'b111; // SLLV 
-            endcase 
-        end
-        else // I-type 和 J-type 指令处理
-        begin
-            case (op_code)
-                6'b001000: {rd_rt_s, imm_s, rt_imm_s, ALU_OP} = {1'b1, 1'b1, 1'b1, 3'b100}; // ADDI
-                6'b001100: {rd_rt_s, rt_imm_s, ALU_OP} = {1'b1, 1'b1, 3'b000}; // ANDI
-                6'b001110: {rd_rt_s, rt_imm_s, ALU_OP} = {1'b1, 1'b1, 3'b010}; // XORI
-                6'b001011: {rd_rt_s, rt_imm_s, ALU_OP} = {1'b1, 1'b1, 3'b110}; // SLTIU
-                6'b100011: {rd_rt_s, imm_s, rt_imm_s, alu_mem_s, ALU_OP} = {1'b1, 1'b1, 1'b1, 1'b1, 3'b100}; // LW
-                6'b101011: {imm_s, rt_imm_s, ALU_OP, Write_Reg, Mem_Write} = {1'b1, 1'b1, 3'b100, 1'b0, 1'b1}; // SW
-            endcase
-        end
-    end
+module PC(clk,rst,Inst_code);//PC模块
+input clk,rst;//输入时钟和复位信号
+wire [31:0]PC_new;//输出新的PC值
+reg[31:0]PC;//PC值
+initial
+	PC = 32'h0000_0000;//初始化PC值
+output [31:0]Inst_code;//输出指令
+assign PC_new = PC +4;//PC值加4
+Inst_Rom rom(//ROM模块
+  .clka(clk), // input clka
+  .addra(PC[7:2]), // input [5 : 0] addra
+  .douta(Inst_code) // output [31 : 0] douta
+);
+always@(negedge clk or posedge rst)//时钟下降沿或复位信号上升沿时
+	begin
+		if(rst)//复位
+			begin PC <= 32'h0000_0000; end//复位
+		else
+			begin PC <= PC_new; end//PC值加4
+	end
 endmodule
 
 ```
-
-
 
 模块实现了 PC 及自增电路的功能。
 
@@ -479,189 +350,9 @@ PS:这边直接ise生成就好了的说
 
 ![image-20240103161511071](./assets/image-20240103161511071.png)
 
-```verilog
-//ROM_Instruction.v
-/*******************************************************************************
-*     This file is owned and controlled by Xilinx and must be used solely      *
-*     for design, simulation, implementation and creation of design files      *
-*     limited to Xilinx devices or technologies. Use with non-Xilinx           *
-*     devices or technologies is expressly prohibited and immediately          *
-*     terminates your license.                                                 *
-*                                                                              *
-*     XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" SOLELY     *
-*     FOR USE IN DEVELOPING PROGRAMS AND SOLUTIONS FOR XILINX DEVICES.  BY     *
-*     PROVIDING THIS DESIGN, CODE, OR INFORMATION AS ONE POSSIBLE              *
-*     IMPLEMENTATION OF THIS FEATURE, APPLICATION OR STANDARD, XILINX IS       *
-*     MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION IS FREE FROM ANY       *
-*     CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE FOR OBTAINING ANY        *
-*     RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.  XILINX EXPRESSLY        *
-*     DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO THE ADEQUACY OF THE    *
-*     IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OR           *
-*     REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE FROM CLAIMS OF          *
-*     INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A    *
-*     PARTICULAR PURPOSE.                                                      *
-*                                                                              *
-*     Xilinx products are not intended for use in life support appliances,     *
-*     devices, or systems.  Use in such applications are expressly             *
-*     prohibited.                                                              *
-*                                                                              *
-*     (c) Copyright 1995-2018 Xilinx, Inc.                                     *
-*     All rights reserved.                                                     *
-*******************************************************************************/
-// You must compile the wrapper file Rom_Instraction.v when simulating
-// the core, Rom_Instraction. When compiling the wrapper file, be sure to
-// reference the XilinxCoreLib Verilog simulation library. For detailed
-// instructions, please refer to the "CORE Generator Help".
-
-// The synthesis directives "translate_off/translate_on" specified below are
-// supported by Xilinx, Mentor Graphics and Synplicity synthesis
-// tools. Ensure they are correct for your synthesis tool(s).
-
-`timescale 1ns/1ps
-
-module Rom_Instraction(
-  clka,
-  addra,
-  douta
-);
-
-input clka;
-input [5 : 0] addra;
-output [31 : 0] douta;
-
-// synthesis translate_off
-
-  BLK_MEM_GEN_V7_3 #(
-    .C_ADDRA_WIDTH(6),
-    .C_ADDRB_WIDTH(6),
-    .C_ALGORITHM(1),
-    .C_AXI_ID_WIDTH(4),
-    .C_AXI_SLAVE_TYPE(0),
-    .C_AXI_TYPE(1),
-    .C_BYTE_SIZE(9),
-    .C_COMMON_CLK(0),
-    .C_DEFAULT_DATA("0"),
-    .C_DISABLE_WARN_BHV_COLL(0),
-    .C_DISABLE_WARN_BHV_RANGE(0),
-    .C_ENABLE_32BIT_ADDRESS(0),
-    .C_FAMILY("artix7"),
-    .C_HAS_AXI_ID(0),
-    .C_HAS_ENA(0),
-    .C_HAS_ENB(0),
-    .C_HAS_INJECTERR(0),
-    .C_HAS_MEM_OUTPUT_REGS_A(0),
-    .C_HAS_MEM_OUTPUT_REGS_B(0),
-    .C_HAS_MUX_OUTPUT_REGS_A(0),
-    .C_HAS_MUX_OUTPUT_REGS_B(0),
-    .C_HAS_REGCEA(0),
-    .C_HAS_REGCEB(0),
-    .C_HAS_RSTA(0),
-    .C_HAS_RSTB(0),
-    .C_HAS_SOFTECC_INPUT_REGS_A(0),
-    .C_HAS_SOFTECC_OUTPUT_REGS_B(0),
-    .C_INIT_FILE("BlankString"),
-    .C_INIT_FILE_NAME("Rom_Instraction.mif"),
-    .C_INITA_VAL("0"),
-    .C_INITB_VAL("0"),
-    .C_INTERFACE_TYPE(0),
-    .C_LOAD_INIT_FILE(1),
-    .C_MEM_TYPE(3),
-    .C_MUX_PIPELINE_STAGES(0),
-    .C_PRIM_TYPE(1),
-    .C_READ_DEPTH_A(64),
-    .C_READ_DEPTH_B(64),
-    .C_READ_WIDTH_A(32),
-    .C_READ_WIDTH_B(32),
-    .C_RST_PRIORITY_A("CE"),
-    .C_RST_PRIORITY_B("CE"),
-    .C_RST_TYPE("SYNC"),
-    .C_RSTRAM_A(0),
-    .C_RSTRAM_B(0),
-    .C_SIM_COLLISION_CHECK("ALL"),
-    .C_USE_BRAM_BLOCK(0),
-    .C_USE_BYTE_WEA(0),
-    .C_USE_BYTE_WEB(0),
-    .C_USE_DEFAULT_DATA(0),
-    .C_USE_ECC(0),
-    .C_USE_SOFTECC(0),
-    .C_WEA_WIDTH(1),
-    .C_WEB_WIDTH(1),
-    .C_WRITE_DEPTH_A(64),
-    .C_WRITE_DEPTH_B(64),
-    .C_WRITE_MODE_A("WRITE_FIRST"),
-    .C_WRITE_MODE_B("WRITE_FIRST"),
-    .C_WRITE_WIDTH_A(32),
-    .C_WRITE_WIDTH_B(32),
-    .C_XDEVICEFAMILY("artix7")
-  )
-  inst (
-    .CLKA(clka),
-    .ADDRA(addra),
-    .DOUTA(douta),
-    .RSTA(),
-    .ENA(),
-    .REGCEA(),
-    .WEA(),
-    .DINA(),
-    .CLKB(),
-    .RSTB(),
-    .ENB(),
-    .REGCEB(),
-    .WEB(),
-    .ADDRB(),
-    .DINB(),
-    .DOUTB(),
-    .INJECTSBITERR(),
-    .INJECTDBITERR(),
-    .SBITERR(),
-    .DBITERR(),
-    .RDADDRECC(),
-    .S_ACLK(),
-    .S_ARESETN(),
-    .S_AXI_AWID(),
-    .S_AXI_AWADDR(),
-    .S_AXI_AWLEN(),
-    .S_AXI_AWSIZE(),
-    .S_AXI_AWBURST(),
-    .S_AXI_AWVALID(),
-    .S_AXI_AWREADY(),
-    .S_AXI_WDATA(),
-    .S_AXI_WSTRB(),
-    .S_AXI_WLAST(),
-    .S_AXI_WVALID(),
-    .S_AXI_WREADY(),
-    .S_AXI_BID(),
-    .S_AXI_BRESP(),
-    .S_AXI_BVALID(),
-    .S_AXI_BREADY(),
-    .S_AXI_ARID(),
-    .S_AXI_ARADDR(),
-    .S_AXI_ARLEN(),
-    .S_AXI_ARSIZE(),
-    .S_AXI_ARBURST(),
-    .S_AXI_ARVALID(),
-    .S_AXI_ARREADY(),
-    .S_AXI_RID(),
-    .S_AXI_RDATA(),
-    .S_AXI_RRESP(),
-    .S_AXI_RLAST(),
-    .S_AXI_RVALID(),
-    .S_AXI_RREADY(),
-    .S_AXI_INJECTSBITERR(),
-    .S_AXI_INJECTDBITERR(),
-    .S_AXI_SBITERR(),
-    .S_AXI_DBITERR(),
-    .S_AXI_RDADDRECC()
-  );
-
-// synthesis translate_on
-
-endmodule
-```
-
 本模块实现了指令存储器的功能。
 
-功能实现方式：使用 IP 核生成指令存储器。
+功能实现方式：使用 IP 核生成指令存储器。代码太长了而且不好贴
 
 ### （3）寄存器堆(实验四)
 
@@ -707,84 +398,33 @@ endmodule
 
 ```verilog
 `timescale 1ns / 1ps
-// 寄存器堆模块
-module MyALU(OF,ZF,ALU_OP,A,B,F);
-// 定义ALU模块，包含输入输出端口
 
-input [2:0]ALU_OP;
-// 输入信号：ALU操作码
-
-input [31:0]A,B;
-// 输入信号：A，B操作数
-
-output reg[31:0]F;
-// 输出信号：ALU的结果
-
-reg C32;
-// 32位进位信号
-
-output reg OF;
-// 输出信号：溢出标志
-
-output reg ZF;
-// 输出信号：零标志
-
-always @(ALU_OP or A or B)
-// 当ALU操作码或A，B操作数改变时，执行以下操作
-begin
-    OF <= 0;
-    // 默认溢出标志为0
-
-    C32 <= 0;
-    // 默认进位信号为0
-
-    case(ALU_OP)
-    // 根据ALU操作码执行不同的操作
-             3'b000:F<=A&B;
-             // 与操作
-
-             3'b001:F<=A|B;
-             // 或操作
-
-             3'b010:F<=A^B;
-             // 异或操作
-
-             3'b011:F<=A~^B;
-             // 等价操作
-
-             3'b100:{C32,F}<=A+B;
-             // 加法操作
-
-             3'b101:{C32,F}<=A-B;
-             // 减法操作
-
-             3'b110:begin if(A<B)  F<=32'h0000_0001;else F<=32'h0000_0000;end
-             // 小于操作
-
-             3'b111:begin F<=B<<A;end
-             // 左移操作
-    endcase
-    // 结束case语句
-
-    if(F==32'h0000_0000)	
-            ZF<=1;
-    // 如果结果为0，零标志为1
-
-    else
-            ZF<=0;
-    // 否则，零标志为0
-
-    if((ALU_OP == 3'b100) || (ALU_OP == 3'b101))
-        OF<=C32^F[31]^A[31]^B[31];	
-    // 如果是加法或减法操作，计算溢出标志
-
-    else
-        OF <=0; 
-    // 否则，溢出标志为0
-    end 
-// 结束always语句
+module RegFile(R_Addr_A,R_Addr_B,Write_Reg,R_Data_A,R_Data_B,Reset,Clk,W_Addr,W_Data);
+input [4:0]R_Addr_A,R_Addr_B,W_Addr;//这部分是寄存器的地址
+input Write_Reg,Reset,Clk;//这部分是控制信号
+input[31:0] W_Data;//这部分是写入的数据
+output [31:0] R_Data_A,R_Data_B;//这部分是输出的数据
+reg [31:0] REG_Files[0:31];//这部分是寄存器的内容
+integer i=0;
+initial
+        for(i=0;i<32;i=i+1) REG_Files[i]<=0;//初始化寄存器的内容
+always @ (posedge Clk or posedge Reset)//这部分是寄存器的写入和清零
+	begin
+		if(Reset)
+			begin
+				for(i=0;i<=31;i=i+1)
+					REG_Files[i]<=0;//清零
+			end
+		else
+			begin
+				if(Write_Reg)
+					REG_Files[W_Addr]<=W_Data;//写入
+			end
+	end
+	assign R_Data_A = REG_Files[R_Addr_A];//这部分是寄存器的读取
+	assign R_Data_B = REG_Files[R_Addr_B];//这部分是寄存器的读取
 endmodule
-// 结束模块定义
+
 ```
 
 本模块实现了寄存器堆的功能。
@@ -860,35 +500,53 @@ endmodule
 
 ```verilog
 `timescale 1ns / 1ps
-// 指令译码及控制模块
-module Control(OP, func, CF,
-    Write_Reg,ALU_OP); // 控制信号
-    input [5:0] OP, func; // Inst_code: OP func 字段
-    input CF; // 进借位标志寄存器CF, 用于判断adc指令调用的实际运算
-    output reg Write_Reg;// 输出控制信号
-    output reg [3:0] ALU_OP; // ALU 运算符编码
 
-    always @(*) begin
-        if (OP === 6'b00_0000) begin// R型指令, 判断 func 字段
-            Write_Reg <= (func !== 6'b00_1111); //则写入寄存器堆
-            case(func)// 添加指令 adc(00_D)
-                6'b10_0100: ALU_OP <= 4'b0000; // 0 and   按位与
-                6'b10_0101: ALU_OP <= 4'b0001; // 1 or    按位或
-                6'b10_0110: ALU_OP <= 4'b0010; // 2 xor   按位异或
-                6'b10_0111: ALU_OP <= 4'b0011; // 3 nor   按位或非
-                6'b10_0000: ALU_OP <= 4'b0100; // 4 add   加法运算(低位无进位 adc)
-                6'b10_0010: ALU_OP <= 4'b0101; // 5 sub   减法运算
-                6'b10_1011: ALU_OP <= 4'b0110; // 6 sltu  无符号A小于B则置位
-                6'b00_0100: ALU_OP <= 4'b0111; // 7 sllv  将B左移A位
-                default: ALU_OP <= 4'bXXXX; // R型非算术运算指令, ALU 结果置零
-            endcase
-        end
-        else begin // 未定义指令
-            Write_Reg <= 1'bX;
-            ALU_OP <= 4'bXXXX;
-        end
-    end
+module OP_Func(op_code,funct,Write_Reg,ALU_OP,rd_rt_s,imm_s,rt_imm_s,Mem_Write,alu_mem_s);
+input [5:0]op_code;// 
+input [5:0]funct;
+output reg[2:0]ALU_OP;
+output reg Write_Reg;
+output reg rd_rt_s;
+output reg imm_s;
+output reg rt_imm_s;
+output reg Mem_Write;
+output reg alu_mem_s;
+always@(*)
+	begin	
+			Write_Reg=1;
+			ALU_OP=0;
+			rd_rt_s=0;
+			imm_s=0;
+			rt_imm_s=0;
+			Mem_Write=0;
+			alu_mem_s=0;
+				if(op_code==0)
+					begin 
+						case(funct)
+						6'b100000:begin ALU_OP=3'b100;end// add 机器码为100000
+						6'b100010:begin ALU_OP=3'b101;end// sub 机器码为100010
+						6'b100100:begin ALU_OP=3'b000;end// and 机器码为100100
+						6'b100101:begin ALU_OP=3'b001;end// or 机器码为100101
+						6'b100110:begin ALU_OP=3'b010;end// xor 机器码为100110
+						6'b100111:begin ALU_OP=3'b011;end// nor 机器码为100111
+						6'b101011:begin ALU_OP=3'b110;end// slt 机器码为101011
+						6'b000100:begin ALU_OP=3'b111;end// sll 机器码为000100
+						endcase 
+					end
+				else
+					begin
+						case(op_code)
+							6'b001000:begin rd_rt_s=1;imm_s=1;rt_imm_s=1;ALU_OP=100;end  
+							6'b001100:begin rd_rt_s=1;rt_imm_s=1;ALU_OP=000; end  
+							6'b001110:begin rd_rt_s=1;rt_imm_s=1;ALU_OP=010;end  
+							6'b001011:begin rd_rt_s=1;rt_imm_s=1;ALU_OP=110; end  
+							6'b100011:begin rd_rt_s=1;imm_s=1;rt_imm_s=1;alu_mem_s=1;ALU_OP=100; end  
+							6'b101011:begin imm_s=1;rt_imm_s=1;ALU_OP=100;Write_Reg=0;Mem_Write=1; end  
+					endcase
+				end
+			end
 endmodule
+
 ```
 
 ## 测试模块
@@ -924,4 +582,3 @@ endmodule
 
 ![image-20240105020355139](./assets/image-20240105020355139.png)
 
-![image-20240105020446402](./assets/image-20240105020446402.png)
