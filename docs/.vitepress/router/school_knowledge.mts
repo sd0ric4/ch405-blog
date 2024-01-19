@@ -1,6 +1,8 @@
 // school_knowledge.mts
 import { computer_organization } from "./school_knowledge/computer_organization/computer_organization.mts"
 import { cpp_docs } from "./school_knowledge/c_plus_plus/cpp.mts"
+import { network_programming } from "./school_knowledge/network_programming/network_programming.mts"
+
 export const school_knowledge = [
     {
         text: 'school_knowledge',
@@ -17,6 +19,11 @@ export const school_knowledge = [
                 link:'/school_knowledge/计算机组成原理.md',
                 items: computer_organization
             },
+            {
+                text:'网络编程',
+                link:'/school_knowledge/网络编程.md',
+                items: network_programming
+            }
             //{text:'Python',link:'/school_knowledge/Python.md'},
             //{text:'Linux',link:'/school_knowledge/Linux.md'},
             //{text:'计算机网络',link:'/school_knowledge/计算机网络.md'},
