@@ -25,9 +25,6 @@ export const chapters = {
       text: "第九章",
       link: "/school_knowledge/网络编程/章节/第九章.md",
     },
-    {
-      text: "第十章",
-      link: "/school_knowledge/网络编程/章节/第十章.md",
-    },
+
   ],
 };
