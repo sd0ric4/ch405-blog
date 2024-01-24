@@ -41,5 +41,18 @@ export const computer_organization = [
                 link: '/school_knowledge/计算机组成原理/实验原理/计算机硬件设计和FPGA与HDL/计算机硬件设计、FPGA与HDL.md'
             }
         ]
+    },
+    {
+        text:'复习',
+        items: [
+            {
+                text: '第三章',
+                link: '/school_knowledge/计算机组成原理/复习/第三章.md'
+            },
+            {
+                text: '第四章',
+                link: '/school_knowledge/计算机组成原理/复习/第四章.md'
+            },
+        ]
     }
 ];
