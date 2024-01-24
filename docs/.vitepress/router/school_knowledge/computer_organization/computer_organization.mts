@@ -53,6 +53,10 @@ export const computer_organization = [
                 text: '第四章',
                 link: '/school_knowledge/计算机组成原理/复习/第四章.md'
             },
+            {
+                text: '第五章',
+                link: '/school_knowledge/计算机组成原理/复习/第五章.md'
+            }
         ]
     }
 ];
