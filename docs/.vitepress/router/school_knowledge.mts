@@ -2,6 +2,7 @@
 import { computer_organization } from "./school_knowledge/computer_organization/computer_organization.mts"
 import { cpp_docs } from "./school_knowledge/c_plus_plus/cpp.mts"
 import { network_programming } from "./school_knowledge/network_programming/network_programming.mts"
+import { servic_outsourcing } from "./school_knowledge/service_outsourcing/service_outsourcing.mts"
 
 export const school_knowledge = [
     {
@@ -23,6 +24,11 @@ export const school_knowledge = [
                 text:'网络编程',
                 link:'/school_knowledge/网络编程.md',
                 items: network_programming
+            },
+            {
+                text: '服务外包',
+                link:'/school_knowledge/服务外包.md',
+                items : servic_outsourcing
             }
             //{text:'Python',link:'/school_knowledge/Python.md'},
             //{text:'Linux',link:'/school_knowledge/Linux.md'},
